@@ -5,6 +5,10 @@ import { useQuery } from "react-query";
 import {fetchCoins} from "../api";
 import { Helmet } from "react-helmet";
 
+interface ICoinsProps{
+    toggleDark:()=>void;
+}
+
 const Container=styled.div`
 padding:0px 20px;
 max-width:480px;
@@ -22,8 +26,8 @@ const CoinsList=styled.ul`
 `;
 
 const Coin=styled.li`
-background-color:#cd84f1;
-color:${(props)=>props.theme.bgColor};
+background-color:${(props)=>props.theme.cardBgColor};
+color:${(props)=>props.theme.textColor};
 maring-bottom:20px;
 border-radius:15px;
 a{

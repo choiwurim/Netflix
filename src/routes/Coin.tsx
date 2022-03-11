@@ -1,12 +1,14 @@
 import {Switch, Route, useParams, useLocation, useRouteMatch} from "react-router-dom";
 import {useQuery} from "react-query";
 import styled from 'styled-components';
-import {Helmet} from "react-Helmet";
-import {useEffect, useState,} from 'react';
 import Chart from './Chart';
 import Price from './Price';
 import {Link} from "react-router-dom";
 import {fetchCoinInfo, fetchCoinTickers} from "../api";
+
+interface ICoinProps{
+    
+}
 
 interface RouteParams{
     coinId: string;
@@ -139,7 +141,7 @@ font-size:30px;
 color:${(props)=>props.theme.accentColor};
 `;
 
-function Coin(){
+function Coin({}:ICoinProps){
     const {coinId}=useParams<RouteParams>();
     const {state}=useLocation<RouteState>();
     const PriceMatch=useRouteMatch("/:coinId/price");
