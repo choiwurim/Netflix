@@ -1,6 +1,7 @@
 import {Switch, Route, useParams, useLocation, useRouteMatch} from "react-router-dom";
 import {useQuery} from "react-query";
 import styled from 'styled-components';
+import {Helmet} from "react-Helmet";
 import {useEffect, useState,} from 'react';
 import Chart from './Chart';
 import Price from './Price';
@@ -149,7 +150,10 @@ function Coin(){
     );
     const {isLoading: tickersLoading, data: tickersData}=useQuery<IPriceData>(
         ["tickers",coinId],
-        ()=>fetchCoinTickers(coinId)
+        ()=>fetchCoinTickers(coinId),
+        {
+            refetchInterval:5000,
+        }
     );
     const loading=infoLoading || tickersLoading;
     return(
@@ -169,8 +173,8 @@ function Coin(){
                             <span>{infoData?.symbol}</span>
                         </OverviewItem>
                         <OverviewItem>
-                            <span>Open Source</span>
-                            <span>{infoData?.open_source ? "Yes":"No"}</span>
+                            <span>Price:</span>
+                            <span>${tickersData?.quotes.USD.price.toFixed(3)}</span>
                         </OverviewItem>
                     </Overview>
                     <Description>{infoData?.description}</Description>
