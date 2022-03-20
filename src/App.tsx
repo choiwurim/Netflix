@@ -1,83 +1,73 @@
-import { createGlobalStyle, ThemeProvider } from "styled-components";
-import Router from "./Router"
-import {ReactQueryDevtools} from "react-query/devtools";
-import {darktheme, lighttheme} from './theme';
-import { useState } from "react";
-import { useRecoilValue } from "recoil";
-import { isDarkAtom } from "./atoms";
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
+import { useRecoilState} from "recoil";
+import styled from "styled-components";
+import { toDoState } from "./atoms";
+import Board from './components/Board';
 
-const GlobalStyle=createGlobalStyle`
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap');
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, menu, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-main, menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, main, menu, nav, section {
-  display: block;
-}
-/* HTML5 hidden-attribute fix for newer browsers */
-*[hidden] {
-    display: none;
-}
-body {
-  line-height: 1;
-}
-menu, ol, ul {
-  list-style: none;
-}
-blockquote, q {
-  quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-  content: '';
-  content: none;
-}
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  font-family: 'Source Sans Pro', sans-serif;
-  background-color:${(props) => props.theme.bgColor};
-  color:${(props) => props.theme.textColor}
-}
-a {
-  text-decoration:none;
-}
+const Wrapper=styled.div`
+display:flex;
+max-width:680px;
+width:100%;
+margin:0 auto;
+justify-content:center;
+align-items:center;
+height:100vh;
+`
+
+const Boards=styled.div`
+display:grid;
+width:100%;
+gap:11px;
+grid-template-columns:repeat(3,1fr);
 `;
 
-function App() {
-  const isDark=useRecoilValue(isDarkAtom);
-  return(
-  <>
-  <ThemeProvider theme={isDark ? darktheme: lighttheme}>
-    <GlobalStyle/>
-    <Router/>
-    <ReactQueryDevtools initialIsOpen={true}/>  
-  </ThemeProvider>
-  </>);
+function App(){
+    const [toDos, setTodo]=useRecoilState(toDoState);
+    const onDragEnd=(info:DropResult)=>{
+        const {destination, source}=info;
+        if(!destination) return ;
+        if(destination?.droppableId===source.droppableId){
+            // same board movement.
+            setTodo((allBoards)=>{
+                const newToDo=[...allBoards[source.droppableId]];
+                const taskObj=newToDo[source.index];
+                // 1) delete item on source.index
+                // 2) input destination to draggableId
+                newToDo.splice(source.index,1);
+                newToDo.splice(destination?.index,0,taskObj);
+                return {
+                    ...allBoards,
+                    [source.droppableId]:newToDo,
+                };
+            });
+        }
+        if(destination.droppableId!==source.droppableId){
+            // cross board movement
+            setTodo((allBoards)=>{
+                const sourceBoard=[...allBoards[source.droppableId]];
+                const targetBoard=[...allBoards[destination.droppableId]];
+                const taskObj=sourceBoard[source.index];
+                sourceBoard.splice(source.index,1);
+                targetBoard.splice(destination?.index, 0, taskObj);
+                return{
+                    ...allBoards,
+                    [source.droppableId]:sourceBoard,
+                    [destination.droppableId]:targetBoard,
+                }
+            })
+        }
+    };
+    return(
+        <DragDropContext onDragEnd={onDragEnd}>
+            <Wrapper>
+                <Boards>
+                    {Object.keys(toDos).map((boardId)=>(
+                        <Board boardId={boardId} key={boardId} toDos={toDos[boardId]} />
+                    ))}
+                </Boards>
+            </Wrapper>
+        </DragDropContext>
+    );
 }
 
 export default App;
